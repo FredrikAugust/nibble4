@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 
 /* API Constants */
-const CLIENT_ID = encodeURIComponent('');
-const CLIENT_SECRET = encodeURIComponent('');
+const CLIENT_ID = encodeURIComponent(process.env.OW4_CLIENT_ID);
+const CLIENT_SECRET = encodeURIComponent(process.env.OW4_CLIENT_SECRET);
 const API_BASE = 'https://online.ntnu.no/api/v1';
 
 export const App = () => {

@@ -1,0 +1,187 @@
+@import url('https://fonts.googleapis.com/css?family=Bungee+Shade|Faster+One|Michroma');
+
+.Marquee {
+    overflow-x: hidden;
+    display: block;
+}
+
+.MarqueeContent {
+    display: inline-block;
+    white-space: nowrap;
+}
+
+* {
+    box-sizing: border-box;
+    overflow-y: hidden;
+    letter-spacing: .3em;
+    font-family: Michroma, sans-serif;
+    line-height: 1.3em;
+    font-style: italic;
+
+    &::-webkit-scrollbar {
+        width: 0;
+    }
+}
+
+img {
+    filter: hue-rotate(216deg);
+}
+
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+    margin: 0;
+    padding: 0;
+}
+
+#root>div>div {
+    &:first-child {
+        width: 25%;
+        background-image: linear-gradient(to top, #c71d6f 0%, #d09693 100%);
+        color: white;
+        padding: 1em;
+        overflow-y: auto;
+    }
+    &:last-child {
+        width: 75%;
+        background-image: url('./background.jpeg');
+        background-size: cover;
+    }
+}
+
+.store {
+    display: flex;
+    flex-wrap: wrap;
+    overflow-y: auto;
+    height: 100vh;
+    padding: .5em;
+
+    .store-image {
+        width: 70%;
+        margin: 1em auto;
+
+        img {
+            width: 100%;
+        }
+    }
+
+    .store-item {
+        .Marquee {
+            background-image: linear-gradient(-20deg, #2b5876 0%, #4e4376 100%);
+            margin-bottom: .7em;
+
+            .MarqueeContent {
+                font-size: 1.7em;
+                font-weight: 200;
+                letter-spacing: .4em;
+                font-family: Faster One, serif;
+            }
+        }
+
+        width: calc(25% - 2em);
+        color: hotpink;
+        font-weight: 200;
+        padding: 1em;
+        transition: opacity .3s, box-shadow .3s;
+        margin: 1em 1em;
+        background-image: linear-gradient(15deg, #13547a 0%, #80d0c7 100%);
+
+        animation-name: blinkColor;
+        animation-duration: 30s;
+        animation-iteration-count: infinite;
+        animation-timing-function: linear;
+    }
+
+    h5 {
+        font-size: 1.5em;
+    }
+}
+
+.login {
+    height: 100vh;
+    display: flex;
+}
+
+.beep-card {
+    background-image: linear-gradient(120deg, #f093fb 0%, #f5576c 100%);
+    display: flex;
+    height: 70%;
+    justify-content: center;
+    margin-top: auto;
+    margin: auto;
+    width: 100%;
+    width: 80%;
+
+    &>.Marquee {
+        align-self: center;
+        font-size: 1.5em;
+        font-weight: 100;
+        margin: auto;
+        width: 80%;
+    }
+}
+
+.logout-button {
+    margin-top: 1em;
+    width: 100%;
+    background-image: linear-gradient(to top, #fcc5e4 0%, #fda34b 15%, #ff7882 35%, #c8699e 52%, #7046aa 71%, #0c1db8 87%, #020f75 100%);
+    border: none;
+    padding: 1em .5em;
+}
+
+.user-information {
+    font-size: 2em;
+    margin: .5em 0;
+    padding: 1em;
+    background-image: linear-gradient(to top, #330867 0%, #30cfd0 100%);
+}
+
+.purchase-button {
+    background-image: linear-gradient(to top, #37ecba 0%, #72afd3 100%);
+    border: none;
+    width: 100%;
+    display: block;
+    padding: .5em;
+    font-size: 2em;
+    font-weight: 200;
+}
+
+.basket-item {
+    span, h5 {
+        font-size: 1.5em;
+    }
+
+    button {
+        float: right;
+        border: none;
+        background-image: linear-gradient(to right, #f83600 0%, #f9d423 100%);
+        padding: .3em .6em;
+    }
+}
+
+@keyframes blinkColor {
+    from {
+        color: cyan;
+    }
+
+    25% {
+        color: magenta;
+    }
+
+    50% {
+        color: lime;
+    }
+
+    75% {
+        color: hotpink;
+    }
+
+    to {
+        color: cyan;
+    }
+}

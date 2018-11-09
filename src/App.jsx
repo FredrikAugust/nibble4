@@ -160,10 +160,10 @@ export const App = () => {
   }
 
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-      <div style={{ width: '25%', height: '25vw' }}>
+    <>
+      <div style={{ display: 'flex', flexWrap: 'wrap' }}>
         {user.pk ?
-          <>
+          <div>
             <UserSection
               logout={() => logout()}
               oldSaldo={user.saldo}
@@ -176,12 +176,12 @@ export const App = () => {
               purchase={() => purchase()}
               removeFromBasket={(pk) => removeFromBasket(pk)}
             />
-          </> :
+          </div> :
           <Login login={(rfid) => login(rfid)} />
         }
-      </div>
 
-      <Store inventory={inventory} isLoggedIn={!!user.pk} addToBasket={(pk) => addToBasket(pk)} />
-    </div>
+        <Store inventory={inventory} isLoggedIn={!!user.pk} addToBasket={(pk) => addToBasket(pk)} />
+      </div>
+    </>
   );
 };

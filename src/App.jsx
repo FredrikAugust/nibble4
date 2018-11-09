@@ -168,7 +168,7 @@ export const App = () => {
 
   return (
     <>
-      { recentPurchase ? <Marquee style={{width: "10px"}}>Kjøp vellykket.</Marquee> : null}
+      { recentPurchase ? <Marquee style={{width: "10px"}}>Kjøp vellykket. Kjøp vellykket. Kjøp vellykket. Kjøp vellykket.</Marquee> : null}
       <div style={{ display: 'flex', flexWrap: 'wrap' }}>
         {user.pk ?
           <div>

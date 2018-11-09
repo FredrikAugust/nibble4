@@ -1,6 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 
 import { Store } from './Store';
+import { Basket } from './Basket';
+import { UserSection } from './UserSection';
+import { Login } from './Login';
 
 /* API Constants */
 const CLIENT_ID = encodeURIComponent(process.env.REACT_APP_CLIENT_ID);
@@ -10,7 +13,15 @@ const API_BASE = process.env.REACT_APP_API_BASE;
 export const App = () => {
   /* Setup hooks that affect the entire application */
   const [token, setToken] = useState(localStorage.getItem('API_TOKEN'));
-  const [inventory, setInventory] = useState(JSON.parse(localStorage.getItem('API_INVENTORY')) || []);
+
+  let initialInventory;
+  try {
+    initialInventory = JSON.parse(localStorage.getItem('API_INVENTORY'));
+  } catch(e) {
+    console.error("Could not read inventory from localStorage.");
+  }
+
+  const [inventory, setInventory] = useState(initialInventory || []);
   const [user, setUser] = useState({});
   const [basket, setBasket] = useState({});
 
@@ -21,13 +32,28 @@ export const App = () => {
     [pk]: (basket[pk] || 0) + 1
   });
 
+  /* Remove an item from the basket based on the pk. Remove key if none
+     left. */
+  const removeFromBasket = (pk) => {
+    if (basket[pk] === 1) {
+      let _basket = Object.assign({}, basket);
+      delete _basket[pk];
+      return setBasket(_basket);
+    }
+
+    setBasket({
+      ...basket,
+      [pk]: (basket[pk] - 1)
+    });
+  }
+
   /* The API wants the basket like this: [{object_id: 1, amount: 2}, ...]. */
-  const APIBasket = useMemo(() => Object.keys(basket).map((v) => ({ object_id: v, amount: basket[v] })), [basket]);
+  const orders = useMemo(() => Object.keys(basket).map((v) => ({ object_id: v, amount: basket[v] })), [basket]);
 
   /* Sum up the price of the items in the basket, but don't generate a new
      unless basket changes. */
   const basketPrice = useMemo(() => (
-    APIBasket.reduce((total, curr) => (
+    orders.reduce((total, curr) => (
       total + inventory.find((e) => e.pk === Number(curr.object_id)).price * curr.amount
     ), 0)
   ), [basket]);
@@ -53,7 +79,7 @@ export const App = () => {
 
   /* We want to defaul to the "hook token" to avoid having to pass it all the time, and only
      when we're in the situation that we need to run with a fresh token. */
-  const fetchWithToken = (url, options, _token = token) => fetch(url, { ...options, headers: { ...options.headers, authorization: `bearer ${_token}` } });
+  const fetchWithToken = (url, options, _token = token) => fetch(url, { ...options, headers: { ...options.headers, authorization: `bearer ${_token}`, 'content-type': 'application/json' } });
 
   /* This function will try to fetch the specified resource with the token, and if the token
      doesn't work, it will fetch a new one and try again. If it fails on the second run, it
@@ -86,12 +112,12 @@ export const App = () => {
     localStorage.setItem('API_INVENTORY', JSON.stringify(newInventory));
   }
 
-  /* Update the inventory (in mem and localstorage) if localstorage is empty. This is 
-     because it should have been updated by the function anyway. This way we can trigger
-     updates by clearing the localstorage.
-     
-     TODO: implement clear localstorage cache button */
-  useEffect(() => !localStorage.getItem('API_INVENTORY') && updateInventory());
+  /* In case our inventory is empty, we want to refetch it. */
+  useEffect(() => {
+    if (inventory.length === 0) {
+      updateInventory();
+    }
+  }, [inventory]);
 
   /* Log into your user with RFID (of your access card) and retrieve name and balance. It returns
      an array with all users matching the login criteria, but we'll presume there's only one, and
@@ -113,24 +139,47 @@ export const App = () => {
     setBasket({});
   }
 
-  /* Input hooks. Because of this wonderful addition we no longer have to implement callbacks modifying
-     state to have a stateful representation of input values. */
-  const [inputRFID, setInputRFID] = useState('');
+  /* Generate the basket in a friendly format every time the basket is updated. */
+  const prettyBasket = useMemo(() => (
+    Object.keys(basket).map((basketItemPK) => ({ amount: basket[basketItemPK], ...inventory.find((e) => (e.pk === Number(basketItemPK))) }))
+  ), [basket]);
+
+  /* Purchase the items in basket. This requires a token. */
+  const purchase = async () => {
+    console.log('Begin purchase...');
+    const res = await secureFetchWithTokenJSON(
+      `${API_BASE}/orderline/`,
+      {
+        body: JSON.stringify({ orders, user: user.pk }),
+        method: 'POST'
+      }
+    );
+    console.log(res);
+    console.log('Purchase complete. Logging out.');
+    logout();
+  }
 
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-      {user.pk ?
-        <div style={{ width: '25%', height: '25vw' }}>
-          <h3>{user.first_name} {user.last_name}</h3>
-          <h6>Now: {user.saldo - basketPrice}</h6>
-          <button onClick={() => logout()}>Log out</button>
-        </div> :
-        <div style={{ width: '25%', height: '25vw' }}>
-          <h3>Sign in</h3>
-          <input placeholder="RFID" type="text" value={inputRFID} onChange={(e) => setInputRFID(e.target.value)}></input>
-          <input type="submit" onClick={() => login(inputRFID)} value="Login" />
-        </div>
-      }
+      <div style={{ width: '25%', height: '25vw' }}>
+        {user.pk ?
+          <>
+            <UserSection
+              logout={() => logout()}
+              oldSaldo={user.saldo}
+              newSaldo={user.saldo - basketPrice}
+              name={`${user.first_name} ${user.last_name}`}
+              updateInventory={() => updateInventory()}
+            />
+            <Basket
+              basket={prettyBasket}
+              purchase={() => purchase()}
+              removeFromBasket={(pk) => removeFromBasket(pk)}
+            />
+          </> :
+          <Login login={(rfid) => login(rfid)} />
+        }
+      </div>
 
       <Store inventory={inventory} isLoggedIn={!!user.pk} addToBasket={(pk) => addToBasket(pk)} />
     </div>

@@ -2,7 +2,7 @@
 
 _Disclaimer: I'm so sorry for not doing anything productive but I binged **react hooks** videos, and had to try 'em out._
 
-_Disclaimer²: This is just a POC, and should obviously not be used (yet).__
+_Disclaimer²: This is just a POC, and should obviously not be used (yet)._
 
 ### Using
 

@@ -5,26 +5,29 @@ import Marquee from 'react-smooth-marquee';
 export const Login = ({ login }) => {
     /* Input hooks. Because of this wonderful addition we no longer have to implement callbacks modifying
        state to have a stateful representation of input values. */
-    const [inputRFID, setInputRFID] = useState('');
+    const [inputRFID, setInputRFID] = useState([]);
 
-    const submit = () => { login(inputRFID); setInputRFID(''); };
+    const keyLogger = (e) => {
+        if (e.keyCode === 13) {
+            return login(inputRFID.join(''));
+        }
+        setInputRFID([...inputRFID, String.fromCharCode(e.keyCode)]);
+    };
 
-    const inputRef = React.createRef();
+    const clearRFIDTimer = () => setInterval(() => setInputRFID([]), 3000);
 
-    useEffect(() => inputRef.current.focus());
+    useEffect(() => {
+        document.addEventListener('keydown', keyLogger);
+        const timerID = clearRFIDTimer();
+
+        return () => {
+            document.removeEventListener('keydown', keyLogger);
+            clearInterval(timerID);
+        }
+    });
 
     return (
-        <div className="login" onClick={() => inputRef.current.focus()}>
-            <input
-                autoFocus
-                ref={inputRef}
-                placeholder="RFID"
-                type="text"
-                value={inputRFID}
-                onKeyDown={(e) => e.keyCode === 13 ? submit() : null}
-                onChange={(e) => setInputRFID(e.target.value)}
-                style={{ position: "absolute", top: "-69em" }}
-            />
+        <div className="login">
             <div className="beep-card">
                 <Marquee>学生証をスキャンしてください。</Marquee>
             </div>

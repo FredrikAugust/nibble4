@@ -118,11 +118,9 @@ p {
     width: 80%;
 
     &>.Marquee {
-        align-self: center;
-        font-size: 1.5em;
-        font-weight: 100;
+        font-size: 7em;
         margin: auto;
-        width: 80%;
+        transform: rotate(270deg);
     }
 }
 

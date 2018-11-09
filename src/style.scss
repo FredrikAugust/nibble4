@@ -120,7 +120,7 @@ p {
     &>.Marquee {
         font-size: 7em;
         margin: auto;
-        transform: rotate(270deg);
+        transform: rotate(90deg);
     }
 }
 
@@ -193,8 +193,9 @@ p {
     z-index: 200;
 
     .MarqueeContent {
-        background: none;
-        padding: 2em 50em 1em 0em;
+        background: black;
+        padding: 0em 50em 0em 0em;
+        overflow-x: visible;
         font-size: 2em;
         font-family: Faster One, sans-serif;
     }

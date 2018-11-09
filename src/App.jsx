@@ -1,5 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 
+import Marquee from 'react-smooth-marquee';
+
 import { Store } from './Store';
 import { Basket } from './Basket';
 import { UserSection } from './UserSection';
@@ -24,6 +26,8 @@ export const App = () => {
   const [inventory, setInventory] = useState(initialInventory || []);
   const [user, setUser] = useState({});
   const [basket, setBasket] = useState({});
+
+  const [recentPurchase, setRecentPurchase] = useState(false);
 
   /* Increment the count of a certain item in the basket by 1.
      We'll have to convert this to the format the API takes later */
@@ -157,10 +161,14 @@ export const App = () => {
     console.log(res);
     console.log('Purchase complete. Logging out.');
     logout();
+
+    setRecentPurchase(true);
+    setTimeout(() => setRecentPurchase(false), 5000);
   }
 
   return (
     <>
+      { recentPurchase ? <Marquee style={{width: "10px"}}>Kjøp vellykket.</Marquee> : null}
       <div style={{ display: 'flex', flexWrap: 'wrap' }}>
         {user.pk ?
           <div>

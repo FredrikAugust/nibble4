@@ -183,3 +183,17 @@ p {
         color: cyan;
     }
 }
+
+#root>.Marquee {
+    position: absolute;
+    top: 45%;
+    left: 50vw;
+    width: 20vw;
+    background: black;
+    z-index: 200;
+
+    .MarqueeContent {
+        background: none;
+        padding: 1em 15em 0 0em;
+    }
+}

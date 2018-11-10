@@ -1,7 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
 
-import Marquee from 'react-smooth-marquee';
-
 import { Store } from './Store';
 import { Basket } from './Basket';
 import { UserSection } from './UserSection';
@@ -168,7 +166,7 @@ export const App = () => {
 
   return (
     <>
-      { recentPurchase ? <Marquee style={{width: "10px"}}>Kjøp vellykket. Kjøp vellykket. Kjøp vellykket. Kjøp vellykket.</Marquee> : null}
+      { recentPurchase ? <div className="purchase-toast">Kjøp vellykket.</div> : null}
       <div style={{ display: 'flex', flexWrap: 'wrap' }}>
         {user.pk ?
           <div>

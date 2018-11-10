@@ -49,7 +49,7 @@ p {
     }
     &:last-child {
         width: 75%;
-        background-image: url('./background.jpeg');
+        background-image: url('../assets/background.jpeg');
         background-size: cover;
     }
 }
@@ -184,19 +184,14 @@ p {
     }
 }
 
-#root>.Marquee {
+#root>.purchase-toast {
     position: absolute;
     top: 45%;
+    padding: 2em;
     left: 50vw;
     width: 20vw;
     background: black;
     z-index: 200;
-
-    .MarqueeContent {
-        background: black;
-        padding: 0em 50em 0em 0em;
-        overflow-x: visible;
-        font-size: 2em;
-        font-family: Faster One, sans-serif;
-    }
+    color: white;
+    text-align: center;
 }

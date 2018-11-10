@@ -160,8 +160,15 @@ export const App = () => {
     console.log('Purchase complete. Logging out.');
     logout();
 
+    /* Show the purchase completed */
     setRecentPurchase(true);
     setTimeout(() => setRecentPurchase(false), 5000);
+
+    /* Notify the backend of our purchases and save new state to LocalStorage */
+
+    // TODO: Notify backend
+    // TODO: Update cache
+    // TODO: Update localstorage
   }
 
   return (

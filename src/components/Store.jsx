@@ -18,8 +18,8 @@ export const Store = ({ inventory, addToBasket, isLoggedIn }) => {
                 b = stats.find((e) => (Number(e.item) === Number(b.pk))).count;
 
                 if (a === b) return 0;
-                if (a > b) return 1;
-                if (a < b) return -1;
+                if (a > b) return -1;
+                if (a < b) return 1;
             }).map((inventoryItem) => (
                 <StoreItem key={inventoryItem.pk} {...inventoryItem} isLoggedIn={isLoggedIn} addToBasket={(pk) => addToBasket(pk)} />
             ))}

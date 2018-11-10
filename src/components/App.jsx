@@ -22,7 +22,9 @@ export const App = () => {
   }
 
   const [inventory, setInventory] = useState(initialInventory || []);
+
   const [user, setUser] = useState({});
+
   const [basket, setBasket] = useState({});
 
   const [recentPurchase, setRecentPurchase] = useState(false);
@@ -121,6 +123,16 @@ export const App = () => {
     }
   }, [inventory]);
 
+  /* Sync the purchase stats with the back end */
+  const syncByRFID = async (rfid) => {
+    const stats = inventory.map(async (i) => {
+      const resp = await fetch(`${process.env.REACT_APP_BACKEND_BASE}?rfid=${user.rfid}&item=${i.pk}`);
+      return await resp.json();
+    });
+    
+    localStorage.setItem(`stats-${rfid}`, stats);
+  }
+
   /* Log into your user with RFID (of your access card) and retrieve name and balance. It returns
      an array with all users matching the login criteria, but we'll presume there's only one, and
      that _the one_ is the correct one. */
@@ -132,11 +144,12 @@ export const App = () => {
     console.log(user.results[0]);
     console.log('Updating...');
 
-    setUser(user.results[0]);
+    setUser({...user.results[0], rfid });
   }
 
   /* Log out and clear the basket */
   const logout = () => {
+    syncByRFID(user.rfid);
     setUser({});
     setBasket({});
   }

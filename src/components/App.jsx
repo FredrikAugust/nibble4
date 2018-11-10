@@ -124,13 +124,13 @@ export const App = () => {
   }, [inventory]);
 
   /* Sync the purchase stats with the back end */
-  const syncByRFID = async (rfid) => {
-    const stats = inventory.map(async (i) => {
-      const resp = await fetch(`${process.env.REACT_APP_BACKEND_BASE}?rfid=${user.rfid}&item=${i.pk}`);
+  const syncByPk = async (pk = user.pk) => {
+    const stats = await Promise.all(inventory.map(async (i) => {
+      const resp = await fetch(`${process.env.REACT_APP_BACKEND_BASE}?pk=${pk}&item=${i.pk}`);
       return await resp.json();
-    });
+    }));
     
-    localStorage.setItem(`stats-${rfid}`, stats);
+    localStorage.setItem(`stats-${pk}`, JSON.stringify(stats));
   }
 
   /* Log into your user with RFID (of your access card) and retrieve name and balance. It returns
@@ -138,18 +138,21 @@ export const App = () => {
      that _the one_ is the correct one. */
   const login = async (rfid) => {
     console.log('Begin logging in...');
-    const user = await secureFetchWithTokenJSON(`${API_BASE}/usersaldo/?rfid=${rfid}`)
+    const user = await secureFetchWithTokenJSON(`${API_BASE}/usersaldo/?rfid=${rfid}`);
 
     console.log('User returned:');
     console.log(user.results[0]);
     console.log('Updating...');
 
-    setUser({...user.results[0], rfid });
+    console.log('Retrieving purchase stats');
+    await syncByPk(user.results[0].pk);
+    console.log('Retrieved! Setting user now.')
+
+    setUser({...user.results[0] });
   }
 
   /* Log out and clear the basket */
   const logout = () => {
-    syncByRFID(user.rfid);
     setUser({});
     setBasket({});
   }
@@ -159,9 +162,26 @@ export const App = () => {
     Object.keys(basket).map((basketItemPK) => ({ amount: basket[basketItemPK], ...inventory.find((e) => (e.pk === Number(basketItemPK))) }))
   ), [basket]);
 
+  /* Increment the purchase stat of a product for all the items in the basket on the backend. */
+  const incrementPurchaseStat = async () => {
+    console.log('Updating stats for following basket:');
+    console.log(basket);
+    orders.forEach((basketItem) => {
+      fetch(`${process.env.REACT_APP_BACKEND_BASE}`, {
+        body: JSON.stringify({ item: Number(basketItem.object_id), count: basketItem.amount, pk: user.pk }),
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      })
+    })
+  }
+
   /* Purchase the items in basket. This requires a token. */
   const purchase = async () => {
     console.log('Begin purchase...');
+
+    console.log('Updating backend stats...');
+    await incrementPurchaseStat();
+
     const res = await secureFetchWithTokenJSON(
       `${API_BASE}/orderline/`,
       {
@@ -206,7 +226,7 @@ export const App = () => {
           <Login login={(rfid) => login(rfid)} />
         }
 
-        <Store inventory={inventory} isLoggedIn={!!user.pk} addToBasket={(pk) => addToBasket(pk)} />
+        <Store inventory={inventory} isLoggedIn={!!user.pk ? user.pk : false} addToBasket={(pk) => addToBasket(pk)} />
       </div>
     </>
   );

@@ -9,6 +9,7 @@ export const Store = ({ inventory, addToBasket, isLoggedIn }) => {
 
     return (
         <div className='store'>
+            {/* eslint-disable-next-line */}
             {inventory.sort((a, b) => {
                 if (!stats.length) {
                     return a.name < b.name;

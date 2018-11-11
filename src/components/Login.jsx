@@ -9,9 +9,11 @@ export const Login = ({ login }) => {
 
     const keyLogger = (e) => {
         if (e.keyCode === 13) {
+            console.log(`Submitting login request with RFID: ${inputRFID.join('')}`);
             return login(inputRFID.join(''));
         }
         setInputRFID([...inputRFID, String.fromCharCode(e.keyCode)]);
+        console.log([...inputRFID, String.fromCharCode(e.keyCode)]);
     };
 
     const clearRFIDTimer = () => setInterval(() => setInputRFID([]), 3000);

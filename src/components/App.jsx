@@ -218,6 +218,7 @@ export const App = () => {
             />
             <Basket
               basket={prettyBasket}
+              newSaldo={user.saldo - basketPrice}
               purchase={() => purchase()}
               removeFromBasket={(pk) => removeFromBasket(pk)}
             />

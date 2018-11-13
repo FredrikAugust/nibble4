@@ -194,19 +194,18 @@ export const App = () => {
     logout();
 
     /* Show the purchase completed */
-    setRecentPurchase(true);
-    setTimeout(() => setRecentPurchase(false), 5000);
-
-    /* Notify the backend of our purchases and save new state to LocalStorage */
-
-    // TODO: Notify backend
-    // TODO: Update cache
-    // TODO: Update localstorage
+    if (!res.detail) {
+      setRecentPurchase("Kjøp vellykket");
+      setTimeout(() => setRecentPurchase(false), 5000);
+    } else {
+      setRecentPurchase("Du har ikke råd :)");
+      setTimeout(() => setRecentPurchase(false), 5000);
+    }
   }
 
   return (
     <>
-      { recentPurchase ? <div className="purchase-toast">Kjøp vellykket.</div> : null}
+      { recentPurchase ? <div className="purchase-toast">{recentPurchase}</div> : null}
       <div style={{ display: 'flex', flexWrap: 'wrap' }}>
         {user.pk ?
           <div>

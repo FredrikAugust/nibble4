@@ -27,7 +27,7 @@ export const App = () => {
 
   const [basket, setBasket] = useState({});
 
-  const [recentPurchase, setRecentPurchase] = useState(false);
+  const [message, setMessage] = useState(false);
 
   /* Increment the count of a certain item in the basket by 1.
      We'll have to convert this to the format the API takes later */
@@ -141,6 +141,9 @@ export const App = () => {
      an array with all users matching the login criteria, but we'll presume there's only one, and
      that _the one_ is the correct one. */
   const login = async (rfid) => {
+    console.log('Setting login toast');
+    setMessage('Logging in... OwO');
+
     console.log('Begin logging in...');
     const user = await secureFetchWithTokenJSON(`${API_BASE}/usersaldo/?rfid=${rfid}`);
 
@@ -153,6 +156,7 @@ export const App = () => {
     console.log('Retrieved! Setting user now.')
 
     setUser({...user.results[0] });
+
   }
 
   /* Log out and clear the basket */
@@ -206,17 +210,17 @@ export const App = () => {
 
     /* Show the purchase completed */
     if (!res.detail) {
-      setRecentPurchase("Kjøp vellykket");
-      setTimeout(() => setRecentPurchase(false), 5000);
+      setMessage("Kjøp vellykket");
+      setTimeout(() => setMessage(false), 5000);
     } else {
-      setRecentPurchase("Du har ikke råd :)");
-      setTimeout(() => setRecentPurchase(false), 5000);
+      setMessage("Du har ikke råd :)");
+      setTimeout(() => setMessage(false), 5000);
     }
   }
 
   return (
     <>
-      { recentPurchase ? <div className="purchase-toast">{recentPurchase}</div> : null}
+      { message ? <div className="toast">{message}</div> : null}
       <div style={{ display: 'flex', flexWrap: 'wrap' }}>
         {user.pk ?
           <div>

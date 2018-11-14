@@ -156,7 +156,7 @@ export const App = () => {
     console.log('Retrieved! Setting user now.')
 
     setUser({...user.results[0] });
-
+    setMessage(null);
   }
 
   /* Log out and clear the basket */

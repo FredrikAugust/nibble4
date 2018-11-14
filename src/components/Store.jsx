@@ -15,8 +15,8 @@ export const Store = ({ inventory, addToBasket, isLoggedIn }) => {
                     return a.name < b.name;
                 }
 
-                a = stats.find((e) => (Number(e.item) === Number(a.pk))).count;
-                b = stats.find((e) => (Number(e.item) === Number(b.pk))).count;
+                a = stats.find((e) => (Number(e.pk) === Number(a.pk))).count;
+                b = stats.find((e) => (Number(e.pk) === Number(b.pk))).count;
 
                 if (a === b) return 0;
                 if (a > b) return -1;

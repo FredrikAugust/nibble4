@@ -124,14 +124,18 @@ export const App = () => {
   }, [inventory]);
 
   /* Sync the purchase stats with the back end */
-  const syncByPk = async (pk = user.pk) => {
-    const stats = await Promise.all(inventory.map(async (i) => {
-      const resp = await fetch(`${process.env.REACT_APP_BACKEND_BASE}?pk=${pk}&item=${i.pk}`);
-      return await resp.json();
-    }));
-    
-    localStorage.setItem(`stats-${pk}`, JSON.stringify(stats));
+  const setupPurchaseStats = (pk = user.pk) => {
+    const path = `stats-${pk}`;
+
+    if (!localStorage.getItem(path)) {
+      localStorage.setItem(path, JSON.stringify(
+        inventory.map((e) => ({ pk: e.pk, count: 0 }))
+      ));
+    }
   }
+
+  /* Get the purchase stats for a user */
+  const getPurchaseStats = () => JSON.parse(localStorage.getItem(`stats-${user.pk}`));
 
   /* Log into your user with RFID (of your access card) and retrieve name and balance. It returns
      an array with all users matching the login criteria, but we'll presume there's only one, and
@@ -145,7 +149,7 @@ export const App = () => {
     console.log('Updating...');
 
     console.log('Retrieving purchase stats');
-    await syncByPk(user.results[0].pk);
+    setupPurchaseStats(user.results[0].pk);
     console.log('Retrieved! Setting user now.')
 
     setUser({...user.results[0] });
@@ -163,16 +167,23 @@ export const App = () => {
   ), [basket]);
 
   /* Increment the purchase stat of a product for all the items in the basket on the backend. */
-  const incrementPurchaseStat = async () => {
+  const incrementPurchaseStat = () => {
     console.log('Updating stats for following basket:');
     console.log(basket);
-    orders.forEach((basketItem) => {
-      fetch(`${process.env.REACT_APP_BACKEND_BASE}`, {
-        body: JSON.stringify({ item: Number(basketItem.object_id), count: basketItem.amount, pk: user.pk }),
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      })
-    })
+
+    localStorage.setItem(
+      `stats-${user.pk}`,
+      JSON.stringify(
+        orders.reduce(
+          (stats, pur) => { 
+            const curr = stats.find((e) => (e.pk === Number(pur.object_id)));
+            const statsWithoutPur = [...stats.slice(0, stats.indexOf(curr)), ...stats.slice(stats.indexOf(curr) + 1)];
+            return [...statsWithoutPur, {pk: curr.pk, count: curr.count + pur.amount }];
+          },
+          getPurchaseStats()
+        )
+      )
+    );
   }
 
   /* Purchase the items in basket. This requires a token. */

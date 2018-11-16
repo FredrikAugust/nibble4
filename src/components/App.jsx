@@ -211,10 +211,10 @@ export const App = () => {
     /* Show the purchase completed */
     if (!res.detail) {
       setMessage("Kjøp vellykket");
-      setTimeout(() => setMessage(false), 5000);
+      setTimeout(() => setMessage(false), 2500);
     } else {
       setMessage("Du har ikke råd :)");
-      setTimeout(() => setMessage(false), 5000);
+      setTimeout(() => setMessage(false), 2500);
     }
   }
 

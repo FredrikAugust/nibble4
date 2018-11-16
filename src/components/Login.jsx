@@ -12,11 +12,14 @@ export const Login = ({ login }) => {
             console.log(`Submitting login request with RFID: ${inputRFID.join('')}`);
             return login(inputRFID.join(''));
         }
-        setInputRFID([...inputRFID, String.fromCharCode(e.keyCode)]);
-        console.log([...inputRFID, String.fromCharCode(e.keyCode)]);
+        setInputRFID([...inputRFID, e.key]);
+        console.log([...inputRFID, e.key]);
     };
 
-    const clearRFIDTimer = () => setInterval(() => setInputRFID([]), 3000);
+    const clearRFIDTimer = () => setInterval(() => {
+        setInputRFID([]);
+        console.log("Cleared RFID input.");
+    }, 3000);
 
     useEffect(() => {
         document.addEventListener('keydown', keyLogger);

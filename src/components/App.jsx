@@ -81,7 +81,7 @@ export const App = () => {
     return newToken;
   }
 
-  /* We want to defaul to the "hook token" to avoid having to pass it all the time, and only
+  /* We want to default to the "hook token" to avoid having to pass it all the time, and only
      when we're in the situation that we need to run with a fresh token. */
   const fetchWithToken = (url, options, _token = token) => fetch(url, { ...options, headers: { ...options.headers, authorization: `bearer ${_token}`, 'content-type': 'application/json' } });
 

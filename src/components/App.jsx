@@ -152,11 +152,20 @@ export const App = () => {
     console.log('Updating...');
 
     console.log('Retrieving purchase stats');
-    setupPurchaseStats(user.results[0].pk);
+
+    try {
+      setupPurchaseStats(user.results[0].pk);
+    } catch(e) {
+      console.log(`Could not find a user with that RFID. This should be handled by showing a registration field, but for now we'll display an error :)`);
+      setMessage('No user with that rfid :)');
+      setTimeout(() => setMessage(false), 2500);
+      return;
+    }
+
     console.log('Retrieved! Setting user now.')
 
     setUser({...user.results[0] });
-    setMessage(null);
+    setMessage(false);
   }
 
   /* Log out and clear the basket */

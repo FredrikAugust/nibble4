@@ -174,10 +174,12 @@ p {
 }
 
 #root>.toast {
-    position: absolute;
-    top: 20vh;
-    padding: 30vh 17vw;
-    left: 30vw;
+    position: fixed;
+    top: calc(50% - 2em);
+    left: 25%;
+    width: 50%;
+    padding: 2em;
+    box-sizing: content-box;
     background: black;
     z-index: 200;
     color: white;

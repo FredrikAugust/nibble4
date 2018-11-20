@@ -1,41 +1,62 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
 import Marquee from 'react-smooth-marquee';
 
-export const Login = ({ login }) => {
-    /* Input hooks. Because of this wonderful addition we no longer have to implement callbacks modifying
-       state to have a stateful representation of input values. */
-    const [inputRFID, setInputRFID] = useState([]);
+export class Login extends React.Component {
+    constructor(props) {
+        super(props);
 
-    const keyLogger = (e) => {
-        if (e.keyCode === 13) {
-            console.log(`Submitting login request with RFID: ${inputRFID.join('')}`);
-            return login(inputRFID.join(''));
+        this.state = {
+            input: [],
+            timerID: -1,
         }
-        setInputRFID([...inputRFID, e.key]);
-        console.log([...inputRFID, e.key]);
+
+        this.keyLogger = this.keyLogger.bind(this);
+        this.setupClearTimer = this.setupClearTimer.bind(this);
+    }
+
+    setupClearTimer() {
+        const timerID = setInterval(() => {
+            this.setState((props) => ({ ...props, input: [] }));
+            console.log("Cleared RFID input.");
+        }, 3000);
+
+        this.setState((props) => ({ ...props, timerID: timerID }))
+    }
+
+    keyLogger(e) {
+        if (e.keyCode === 13) {
+            console.log(`Submitting login request with RFID: ${this.state.input.join('')}`);
+            return this.props.login(this.state.input.join(''));
+        }
+
+        clearInterval(this.state.timerID);
+
+        this.setState((props) => ({ ...props, input: [...props.input, e.key] }));
+        console.log(`Current input: ${[...this.state.input]}`);
+
+        this.setupClearTimer();
     };
 
-    const clearRFIDTimer = () => setInterval(() => {
-        setInputRFID([]);
-        console.log("Cleared RFID input.");
-    }, 3000);
+    componentDidMount() {
+        document.addEventListener('keydown', this.keyLogger);
 
-    useEffect(() => {
-        document.addEventListener('keydown', keyLogger);
-        const timerID = clearRFIDTimer();
+        this.setupClearTimer();
+    }
 
-        return () => {
-            document.removeEventListener('keydown', keyLogger);
-            clearInterval(timerID);
-        }
-    });
+    componentWillUnmount() {
+        document.removeEventListener('keydown', this.keyLogger);
 
-    return (
-        <div className="login">
-            <div className="beep-card">
-                <Marquee>学生証をスキャンしてください。</Marquee>
+        clearInterval(this.state.timerID);
+    }
+
+    render() {
+        return (
+            <div className="login">
+                <div className="beep-card">
+                    <Marquee>学生証をスキャンしてください。</Marquee>
+                </div>
             </div>
-        </div>
-    );
+        );
+    }
 }

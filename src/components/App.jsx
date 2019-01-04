@@ -1,9 +1,10 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect } from "react";
 
-import { Store } from './Store';
-import { Basket } from './Basket';
-import { UserSection } from './UserSection';
-import { Login } from './Login';
+import { Store } from "./Store";
+import { Basket } from "./Basket";
+import { UserSection } from "./UserSection";
+import { Login } from "./Login";
+import { RegistrationModal } from "./RegistrationModal";
 
 /* API Constants */
 const CLIENT_ID = encodeURIComponent(process.env.REACT_APP_CLIENT_ID);
@@ -12,12 +13,12 @@ const API_BASE = process.env.REACT_APP_API_BASE;
 
 export const App = () => {
   /* Setup hooks that affect the entire application */
-  const [token, setToken] = useState(localStorage.getItem('API_TOKEN'));
+  const [token, setToken] = useState(localStorage.getItem("API_TOKEN"));
 
   let initialInventory;
   try {
-    initialInventory = JSON.parse(localStorage.getItem('API_INVENTORY'));
-  } catch(e) {
+    initialInventory = JSON.parse(localStorage.getItem("API_INVENTORY"));
+  } catch (e) {
     console.error("Could not read inventory from localStorage.");
   }
 
@@ -31,14 +32,15 @@ export const App = () => {
 
   /* Increment the count of a certain item in the basket by 1.
      We'll have to convert this to the format the API takes later */
-  const addToBasket = (pk) => setBasket({
-    ...basket,
-    [pk]: (basket[pk] || 0) + 1
-  });
+  const addToBasket = pk =>
+    setBasket({
+      ...basket,
+      [pk]: (basket[pk] || 0) + 1
+    });
 
   /* Remove an item from the basket based on the pk. Remove key if none
      left. */
-  const removeFromBasket = (pk) => {
+  const removeFromBasket = pk => {
     if (basket[pk] === 1) {
       let _basket = Object.assign({}, basket);
       delete _basket[pk];
@@ -47,49 +49,66 @@ export const App = () => {
 
     setBasket({
       ...basket,
-      [pk]: (basket[pk] - 1)
+      [pk]: basket[pk] - 1
     });
-  }
+  };
 
   /* The API wants the basket like this: [{object_id: 1, amount: 2}, ...]. */
-  const orders = useMemo(() => Object.keys(basket).map((v) => ({ object_id: v, amount: basket[v] })), [basket]);
+  const orders = useMemo(
+    () => Object.keys(basket).map(v => ({ object_id: v, amount: basket[v] })),
+    [basket]
+  );
 
   /* Sum up the price of the items in the basket, but don't generate a new
      unless basket changes. */
-  const basketPrice = useMemo(() => (
-    orders.reduce((total, curr) => (
-      total + inventory.find((e) => e.pk === Number(curr.object_id)).price * curr.amount
-    ), 0)
-  ), [basket]);
+  const basketPrice = useMemo(
+    () =>
+      orders.reduce(
+        (total, curr) =>
+          total +
+          inventory.find(e => e.pk === Number(curr.object_id)).price *
+            curr.amount,
+        0
+      ),
+    [basket]
+  );
 
   /* This function will update our "hook token" and return it,
      as we need to use it directly in case of a 401 */
   const updateToken = async () => {
-    console.log('Retrieving new token...');
+    console.log("Retrieving new token...");
     const res = await fetch(
       `${API_BASE}/auth/?client_id=` +
-      `${CLIENT_ID}&client_secret=${CLIENT_SECRET}` +
-      '&grant_type=client_credentials',
-      { method: 'post' }
+        `${CLIENT_ID}&client_secret=${CLIENT_SECRET}` +
+        "&grant_type=client_credentials",
+      { method: "post" }
     );
 
     const newToken = (await res.json()).access_token;
     setToken(newToken);
-    localStorage.setItem('API_TOKEN', newToken);
-    console.log(`New token retrived (${newToken}). Updating...`)
+    localStorage.setItem("API_TOKEN", newToken);
+    console.log(`New token retrived (${newToken}). Updating...`);
 
     return newToken;
-  }
+  };
 
   /* We want to default to the "hook token" to avoid having to pass it all the time, and only
      when we're in the situation that we need to run with a fresh token. */
-  const fetchWithToken = (url, options, _token = token) => fetch(url, { ...options, headers: { ...options.headers, authorization: `bearer ${_token}`, 'content-type': 'application/json' } });
+  const fetchWithToken = (url, options, _token = token) =>
+    fetch(url, {
+      ...options,
+      headers: {
+        ...options.headers,
+        authorization: `bearer ${_token}`,
+        "content-type": "application/json"
+      }
+    });
 
   /* This function will try to fetch the specified resource with the token, and if the token
      doesn't work, it will fetch a new one and try again. If it fails on the second run, it
      will throw and error and stop trying to avoid flooding the API. */
   const secureFetchWithTokenJSON = async (url, options = {}) => {
-    console.log('Running command with token...');
+    console.log("Running command with token...");
 
     let res = await fetchWithToken(url, options);
 
@@ -100,12 +119,12 @@ export const App = () => {
       res = await fetchWithToken(url, options, newToken);
 
       if (res.status === 401) {
-        throw new Error('Still 401 after new token retrieval.');
+        throw new Error("Still 401 after new token retrieval.");
       }
     }
 
     return await res.json();
-  }
+  };
 
   /* Retrieve the available items in nibble and call the hook with them. Does not require
      authorization. */
@@ -113,108 +132,125 @@ export const App = () => {
     const res = await fetch(`${API_BASE}/inventory/`);
     const newInventory = await res.json();
     setInventory(newInventory);
-    localStorage.setItem('API_INVENTORY', JSON.stringify(newInventory));
-  }
+    localStorage.setItem("API_INVENTORY", JSON.stringify(newInventory));
+  };
 
   /* In case our inventory is empty, we want to refetch it. */
-  useEffect(() => {
-    if (inventory.length === 0) {
-      updateInventory();
-    }
-  }, [inventory]);
+  useEffect(
+    () => {
+      if (inventory.length === 0) {
+        updateInventory();
+      }
+    },
+    [inventory]
+  );
 
   /* Sync the purchase stats with the back end */
   const setupPurchaseStats = (pk = user.pk) => {
     const path = `stats-${pk}`;
 
     if (!localStorage.getItem(path)) {
-      localStorage.setItem(path, JSON.stringify(
-        inventory.map((e) => ({ pk: e.pk, count: 0 }))
-      ));
+      localStorage.setItem(
+        path,
+        JSON.stringify(inventory.map(e => ({ pk: e.pk, count: 0 })))
+      );
     }
-  }
+  };
 
   /* Get the purchase stats for a user */
-  const getPurchaseStats = () => JSON.parse(localStorage.getItem(`stats-${user.pk}`));
+  const getPurchaseStats = () =>
+    JSON.parse(localStorage.getItem(`stats-${user.pk}`));
+
+  const [previousSubmittedRFID, setPreviousSubmittedRFID] = useState("");
 
   /* Log into your user with RFID (of your access card) and retrieve name and balance. It returns
      an array with all users matching the login criteria, but we'll presume there's only one, and
      that _the one_ is the correct one. */
-  const login = async (rfid) => {
-    console.log('Setting login toast');
-    setMessage('Logging in... OwO');
+  const login = async rfid => {
+    setPreviousSubmittedRFID(rfid);
 
-    console.log('Begin logging in...');
-    const user = await secureFetchWithTokenJSON(`${API_BASE}/usersaldo/?rfid=${rfid}`);
+    console.log("Setting login toast");
+    setMessage("Logging in... OwO");
 
-    console.log('User returned:');
+    console.log("Begin logging in...");
+    const user = await secureFetchWithTokenJSON(
+      `${API_BASE}/usersaldo/?rfid=${rfid}`
+    );
+
+    console.log("Results returned:");
     console.log(user.results[0]);
-    console.log('Updating...');
+    console.log("Updating...");
 
-    console.log('Retrieving purchase stats');
+    console.log("Retrieving purchase stats");
 
     try {
       setupPurchaseStats(user.results[0].pk);
-    } catch(e) {
-      console.log(`Could not find a user with that RFID. This should be handled by showing a registration field, but for now we'll display an error :)`);
-      setMessage('No user with that rfid :)');
-      setTimeout(() => setMessage(false), 2500);
+    } catch (e) {
+      console.log(
+        `Could not find a user with that RFID. This should be handled by showing a registration field, but for now we'll display an error :)`
+      );
+
       return;
     }
 
-    console.log('Retrieved! Setting user now.')
+    console.log("Retrieved! Setting user now.");
 
-    setUser({...user.results[0] });
+    setUser({ ...user.results[0] });
     setMessage(false);
-  }
+  };
 
   /* Log out and clear the basket */
   const logout = () => {
     setUser({});
     setBasket({});
-  }
+  };
 
   /* Generate the basket in a friendly format every time the basket is updated. */
-  const prettyBasket = useMemo(() => (
-    Object.keys(basket).map((basketItemPK) => ({ amount: basket[basketItemPK], ...inventory.find((e) => (e.pk === Number(basketItemPK))) }))
-  ), [basket]);
+  const prettyBasket = useMemo(
+    () =>
+      Object.keys(basket).map(basketItemPK => ({
+        amount: basket[basketItemPK],
+        ...inventory.find(e => e.pk === Number(basketItemPK))
+      })),
+    [basket]
+  );
 
   /* Increment the purchase stat of a product for all the items in the basket on the backend. */
   const incrementPurchaseStat = () => {
-    console.log('Updating stats for following basket:');
+    console.log("Updating stats for following basket:");
     console.log(basket);
 
     localStorage.setItem(
       `stats-${user.pk}`,
       JSON.stringify(
-        orders.reduce(
-          (stats, pur) => { 
-            const curr = stats.find((e) => (e.pk === Number(pur.object_id)));
-            const statsWithoutPur = [...stats.slice(0, stats.indexOf(curr)), ...stats.slice(stats.indexOf(curr) + 1)];
-            return [...statsWithoutPur, {pk: curr.pk, count: curr.count + pur.amount }];
-          },
-          getPurchaseStats()
-        )
+        orders.reduce((stats, pur) => {
+          const curr = stats.find(e => e.pk === Number(pur.object_id));
+          const statsWithoutPur = [
+            ...stats.slice(0, stats.indexOf(curr)),
+            ...stats.slice(stats.indexOf(curr) + 1)
+          ];
+          return [
+            ...statsWithoutPur,
+            { pk: curr.pk, count: curr.count + pur.amount }
+          ];
+        }, getPurchaseStats())
       )
     );
-  }
+  };
 
   /* Purchase the items in basket. This requires a token. */
   const purchase = async () => {
-    console.log('Begin purchase...');
+    console.log("Begin purchase...");
 
-    console.log('Updating backend stats...');
+    console.log("Updating backend stats...");
     await incrementPurchaseStat();
 
-    const res = await secureFetchWithTokenJSON(
-      `${API_BASE}/orderline/`,
-      {
-        body: JSON.stringify({ orders, user: user.pk }),
-        method: 'POST'
-      }
-    );
+    const res = await secureFetchWithTokenJSON(`${API_BASE}/orderline/`, {
+      body: JSON.stringify({ orders, user: user.pk }),
+      method: "POST"
+    });
     console.log(res);
-    console.log('Purchase complete. Logging out.');
+    console.log("Purchase complete. Logging out.");
     logout();
 
     /* Show the purchase completed */
@@ -225,13 +261,28 @@ export const App = () => {
       setMessage("Du har ikke råd :)");
       setTimeout(() => setMessage(false), 2500);
     }
-  }
+  };
+
+  /* Register a new RFID for a user */
+  const bindRFID = async (username = "", password = "") => {
+    console.log(`Send request to bind RFID (${previousSubmittedRFID})...`);
+
+    const res = await secureFetchWithTokenJSON(`${API_BASE}/rfid/`, {
+      method: "POST",
+      body: JSON.stringify({ username, password, rfid: previousSubmittedRFID })
+    });
+
+    // TODO: Handle result of `res`
+  };
 
   return (
     <>
-      { message ? <div className="toast">{message}</div> : null}
-      <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-        {user.pk ?
+      <RegistrationModal
+        register={(username, password) => bindRFID(username, password)}
+      />
+      {message ? <div className="toast">{message}</div> : null}
+      <div style={{ display: "flex", flexWrap: "wrap" }}>
+        {user.pk ? (
           <div>
             <UserSection
               logout={() => logout()}
@@ -244,13 +295,18 @@ export const App = () => {
               basket={prettyBasket}
               newSaldo={user.saldo - basketPrice}
               purchase={() => purchase()}
-              removeFromBasket={(pk) => removeFromBasket(pk)}
+              removeFromBasket={pk => removeFromBasket(pk)}
             />
-          </div> :
-          <Login login={(rfid) => login(rfid)} />
-        }
+          </div>
+        ) : (
+          <Login login={rfid => login(rfid)} />
+        )}
 
-        <Store inventory={inventory} isLoggedIn={!!user.pk ? user.pk : false} addToBasket={(pk) => addToBasket(pk)} />
+        <Store
+          inventory={inventory}
+          isLoggedIn={!!user.pk ? user.pk : false}
+          addToBasket={pk => addToBasket(pk)}
+        />
       </div>
     </>
   );

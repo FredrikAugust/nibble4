@@ -5,7 +5,7 @@ export const RegistrationModal = ({ register }) => {
   const [password, setPassword] = useState("");
 
   return (
-    <div id="registration-modal">
+    <div id="registration-modal" style={{ display: "none" }}>
       <form
         onSubmit={e => {
           e.preventDefault();
